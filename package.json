@@ -1,5 +1,27 @@
 {
+  "name": "gifcentration-server",
+  "version": "1.0.0",
+  "engines": {
+    "node": "8.9.4"
+  },
+  "main": "index.js",
+  "scripts": {
+    "build": "rimraf dist/ && babel ./ --out-dir dist/ --ignore node_modules,.babelrc,.eslintrc,.gitignore,package.json,yarn.lock --copy-files",
+    "start": "yarn run build && node dist/index.js"
+  },
+  "repository": "https://github.com/mstop4/gifcentration-server.git",
+  "author": "mstop4 <mstop4@gmail.com>",
+  "license": "MIT",
   "dependencies": {
-    "express": "^4.16.3"
+    "body-parser": "^1.18.2",
+    "express": "^4.16.3",
+    "morgan": "^1.9.0",
+    "rimraf": "^2.6.2"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "eslint": "^4.19.1",
+    "nodemon": "^1.17.3"
   }
 }
