@@ -10,3 +10,23 @@ describe('Main Page', () => {
     })
   })
 })
+
+describe('Url endpoint', () => {
+  it('should get a JSON object', (done) => {
+    request('http://localhost:3000/urls', (error, res, body) => {
+
+      let json = JSON.parse(body)
+      expect(json).to.be.an('object')
+      done()
+    })
+  })
+
+  it('the JSON object should have the key "urls", which has an array as a value', (done) => {
+    request('http://localhost:3000/urls', (error, res, body) => {
+
+      let json = JSON.parse(body)
+      expect(json.urls).to.be.an('array')
+      done()
+    })
+  })
+})
