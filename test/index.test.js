@@ -12,9 +12,9 @@ describe('Main Page', () => {
   })
 })
 
-describe('Url endpoint', () => {
+describe('/json endpoint', () => {
   it('should get a JSON object', (done) => {
-    request(`http://localhost:${process.env.SERVER_PORT}/urls`, (error, res, body) => {
+    request(`http://localhost:${process.env.SERVER_PORT}/json`, (error, res, body) => {
 
       let json = JSON.parse(body)
       expect(json).to.be.an('object')
@@ -23,10 +23,21 @@ describe('Url endpoint', () => {
   })
 
   it('the JSON object should have the key "urls", which has an array as a value', (done) => {
-    request('http://localhost:3000/urls', (error, res, body) => {
+    request('http://localhost:3000/json', (error, res, body) => {
 
       let json = JSON.parse(body)
       expect(json.urls).to.be.an('array')
+      done()
+    })
+  })
+})
+
+describe('/gifme endpoint', () => {
+  it('should get search results for "cats" as an array', (done) => {
+    request(`http://localhost:${process.env.SERVER_PORT}/gifme?query=cats`, (error, res, body) => {
+
+      let json = JSON.parse(body)
+      expect(json).to.be.an('array')
       done()
     })
   })
