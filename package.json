@@ -6,8 +6,8 @@
   },
   "main": "index.js",
   "scripts": {
-    "build": "rimraf dist/ && babel ./ --out-dir dist/ --ignore node_modules,.babelrc,.eslintrc,.gitignore,package.json,yarn.lock --copy-files",
-    "start": "yarn run build && node dist/index.js"
+    "start": "nodemon --exec yarn run babel-node -- ./src/index.js",
+    "build": "babel src -d dist"
   },
   "repository": "https://github.com/mstop4/gifcentration-server.git",
   "author": "mstop4 <mstop4@gmail.com>",
