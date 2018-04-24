@@ -15,16 +15,16 @@ describe('Main Page', () => {
 describe('/gifme endpoint', () => {
 
   it('should get search results for "cats" as an array', (done) => {
-    request(`http://localhost:${process.env.SERVER_PORT}/gifme?query=cats`, (error, res, body) => {
+    request(`http://localhost:${process.env.SERVER_PORT}/gifme/json?query=cats`, (error, res, body) => {
 
       let json = JSON.parse(body)
-      expect(json).to.be.an('array').that.is.not.empty.and.not.includes('error')
+      expect(json).to.be.an('array').that.is.not.empty.and.does.not.include('error')
       done()
     })
   })
 
   it('a blank query should return an empty array', (done) => {
-    request(`http://localhost:${process.env.SERVER_PORT}/gifme?query=`, (error, res, body) => {
+    request(`http://localhost:${process.env.SERVER_PORT}/gifme/json?query=`, (error, res, body) => {
 
       let json = JSON.parse(body)
       expect(json).to.be.an('array').that.is.empty
@@ -33,10 +33,10 @@ describe('/gifme endpoint', () => {
   })
 
   it('a missing query should still return some results', (done) => {
-    request(`http://localhost:${process.env.SERVER_PORT}/gifme`, (error, res, body) => {
+    request(`http://localhost:${process.env.SERVER_PORT}/gifme/json`, (error, res, body) => {
 
       let json = JSON.parse(body)
-      expect(json).to.be.an('array').that.is.not.empty.and.not.includes('error')
+      expect(json).to.be.an('array').that.is.not.empty.and.does.not.include('error')
       done()
     })
   })
