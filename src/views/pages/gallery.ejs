@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Gallery</title>
+  </head>
+
+  <body>
+    <header>
+      <h1>Gallery</h1>
+    </header>
+
+    <main>
+      <ul>
+        <% gifs.forEach(function(gif) { %>
+            <img src=<%= gif %>>
+        <% }); %>
+      </ul>
+    </main>
+  </body>
+</html>
