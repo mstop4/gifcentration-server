@@ -14,21 +14,22 @@ app.get('/', (req, res) => {
   res.send('Hello World! I am your new leader!')
 })
 
-app.get('/json', (req, res) => {
-  res.setHeader('Content-Type', 'application/json')
-  res.send(JSON.stringify({ urls: [0] }))
-})
-
 app.get('/gifme', (req, res) => {
+  let gifs = []
+
   client.search('gifs', {'q': req.query.query})
     .then((giphyRes) => {
-      res.setHeader('Content-Type', 'application/json')
-      res.send(JSON.stringify(giphyRes.data))
+      for (let i = 0; i < giphyRes.data.length; i++) {
+        let url = `https://media.giphy.com/media/${giphyRes.data[i].images.media_id}/giphy.gif`
+        gifs.push(url)
+      }
     })
-    .catch((giphyErr) => {
-      let data = { error: giphyErr }
+    .catch(() => {
+      gifs = ['error']
+    })
+    .finally(() => {
       res.setHeader('Content-Type', 'application/json')
-      res.send(JSON.stringify(data))
+      res.send(JSON.stringify(gifs))
     })
 })
 
