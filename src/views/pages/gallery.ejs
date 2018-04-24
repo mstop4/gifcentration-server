@@ -10,11 +10,13 @@
     </header>
 
     <main>
-      <ul>
+      <% if (gifs[0] !== 'error') { %>
         <% gifs.forEach(function(gif) { %>
             <img src=<%= gif %>>
         <% }); %>
-      </ul>
+      <% } else { %>
+        <p>Error getting results</p>
+      <% } %>
     </main>
   </body>
 </html>
