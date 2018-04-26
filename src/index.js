@@ -20,6 +20,8 @@ app.get('/', (req, res) => {
   res.render('pages/index')
 })
 
+// gifme
+
 app.get('/gifme/:format', (req, res) => {
   let gifs = []
 
@@ -58,6 +60,8 @@ app.get('/gifme/:format', (req, res) => {
       }
     })
 })
+
+// gifme end
 
 // eslint-disable-next-line no-unused-vars
 const server = app.listen(process.env.SERVER_PORT, () => {
