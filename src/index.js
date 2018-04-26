@@ -1,13 +1,16 @@
 import dotenv from 'dotenv'
 import path from 'path'
 import express from 'express'
+import bodyParser from 'body-parser'
 import morgan from 'morgan'
 import GphApiClient from 'giphy-js-sdk-core'
 
 dotenv.config()
 
 const app = express()
-app.use(morgan('short'))
+app.use(morgan('dev'))
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: false }))
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'ejs')
 
