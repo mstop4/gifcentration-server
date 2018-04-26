@@ -1,8 +1,8 @@
 {
-  "name": "gifcentration-server",
+  "name": "gifcentration",
   "version": "1.0.0",
   "engines": {
-    "node": "8.9.4"
+    "node": "8.11.1"
   },
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,7 @@
     "start": "nodemon --exec yarn run babel-node -- ./src/index.js",
     "build": "babel src -d dist"
   },
-  "repository": "https://github.com/mstop4/gifcentration-server.git",
+  "repository": "https://github.com/mstop4/gifcentration.git",
   "author": "mstop4 <mstop4@gmail.com>",
   "license": "MIT",
   "dependencies": {
@@ -19,7 +19,8 @@
     "ejs": "^2.5.9",
     "express": "^4.16.3",
     "giphy-js-sdk-core": "^1.0.3",
-    "morgan": "^1.9.0"
+    "morgan": "^1.9.0",
+    "redis": "^2.8.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
