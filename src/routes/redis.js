@@ -1,21 +1,16 @@
 import express from 'express'
-import redis from 'redis'
+import rClient from '../helpers/redis_db'
 
 const router = express.Router()
-const client = redis.createClient()
-
-client.on('connect', () => {
-  console.log('Redis connected on port 6379')
-})
 
 router.get('/', (req, res) => {
-  client.get('test', (err, reply) => {
+  rClient.get('test', (err, reply) => {
     res.send(reply)
   })
 })
 
 router.post('/', (req, res) => {
-  client.set('test', req.query.str, (err, reply) => {
+  rClient.set('test', req.query.str, (err, reply) => {
     res.send(reply)
   })
 })
