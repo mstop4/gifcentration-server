@@ -7,7 +7,7 @@
   "main": "index.js",
   "scripts": {
     "test": "node ./node_modules/mocha/bin/mocha",
-    "start": "nodemon --exec yarn run babel-node -- ./src/index.js",
+    "start": "nodemon --exec yarn run babel-node -- ./src/app.js",
     "build": "babel src -d dist"
   },
   "repository": "https://github.com/mstop4/gifcentration.git",

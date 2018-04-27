@@ -6,6 +6,8 @@ import express from 'express'
 import bodyParser from 'body-parser'
 import morgan from 'morgan'
 
+//Routes
+import index from './routes/index'
 import gifme from './routes/gifme'
 
 const app = express()
@@ -15,11 +17,8 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'ejs')
 
+app.use('/', index)
 app.use('/gifme', gifme)
-
-app.get('/', (req, res) => {
-  res.render('pages/index')
-})
 
 // eslint-disable-next-line no-unused-vars
 const server = app.listen(process.env.SERVER_PORT, () => {
