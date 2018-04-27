@@ -9,7 +9,7 @@ import morgan from 'morgan'
 //Routes
 import index from './routes/index'
 import gifme from './routes/gifme'
-import redis from './routes/redistest'
+import redis from './routes/redis'
 
 const app = express()
 app.use(morgan('dev'))
