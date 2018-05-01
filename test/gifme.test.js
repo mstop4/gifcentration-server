@@ -49,4 +49,13 @@ describe('/gifme endpoint', () => {
       done()
     })
   })
+
+  it('limit higher than maximum, it should on fetch the maximum (100) number of GIFs', (done) => {
+    request(`http://localhost:${process.env.SERVER_PORT}/gifme/json?query=dog&limit=200`, (error, res, body) => {
+
+      let json = JSON.parse(body)
+      expect(json).to.be.an('array').that.has.lengthOf(100)
+      done()
+    })
+  })
 })

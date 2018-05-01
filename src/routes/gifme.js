@@ -12,15 +12,14 @@ const chance = new Chance()
 
 router.get('/:format', (req, res) => {
   rClient.exists(`giphy:${req.query.query}`, (err, reply) => {
+
+    let limit = Math.min(req.query.limit || 20, process.env.MAX_GIFS_PER_REQUEST)
+
     if (reply === 1) {
       // exists, fetch from redis
-      console.log('key exists')
-      let limit = Math.min(req.query.limit || 20, process.env.MAX_GIFS_PER_REQUEST)
       fetchGifsFromRedis(req.query.query, req.params.format, limit, res)
     } else {
       //doesn't exist, fetch from Giphy
-      console.log('key does not exist')
-      let limit = Math.min(req.query.limit || 20, process.env.MAX_GIFS_PER_REQUEST)
       fetchGifsFromGiphy(req.query.query, req.params.format, limit, res)
     }
   })
@@ -82,9 +81,11 @@ const fetchGifsFromGiphy = (query, format, limit, res) => {
         gifCache.push(url)
       }
 
-      rClient.sadd([`giphy:${query}`, ...gifCache], (reply) => {
-        console.log(`Redis: adding giphy:${query} - ${reply}`)
-      })
+      if (gifCache.length > 0) {
+        rClient.sadd([`giphy:${query}`, ...gifCache], (reply) => {
+          console.log(`Redis: adding giphy:${query} - ${reply}`)
+        })
+      }
 
       // returned gifs
       let numGifs = Math.min(gifCache.length, limit)
