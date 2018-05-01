@@ -16,7 +16,7 @@ router.get('/:format', (req, res) => {
       // exists, fetch from redis
       console.log('key exists')
       let limit = Math.min(req.query.limit || 20, process.env.MAX_GIFS_PER_REQUEST)
-      fetchGifsFromGiphy(req.query.query, req.params.format, limit, res)
+      fetchGifsFromRedis(req.query.query, req.params.format, limit, res)
     } else {
       //doesn't exist, fetch from Giphy
       console.log('key does not exist')
@@ -27,10 +27,35 @@ router.get('/:format', (req, res) => {
 })
 
 const fetchGifsFromRedis = (query, format, limit, res) => {
-  let gifs = ['hi']
+  let gifs = []
 
-  res.setHeader('Content-Type', 'application/json')
-  res.send(JSON.stringify(gifs))
+  rClient.smembers(`giphy:${query}`, (err, reply) => {
+
+    if (err) {
+      gifs = ['error']
+    } else {
+      // returned gifs
+      let numGifs = Math.min(reply.length, limit)
+      let indices = chance.unique(chance.integer, numGifs, {min: 0, max: reply.length-1})
+
+      for (let i = 0; i < indices.length; i++) {
+        gifs.push(reply[indices[i]])
+      }
+    }
+
+    if (format === 'json') {
+      res.setHeader('Content-Type', 'application/json')
+      res.send(JSON.stringify(gifs))
+
+    } else if (format === 'html') {
+      res.render('pages/gallery', {
+        gifs: gifs
+      })
+      
+    } else {
+      res.send('WAT')
+    }
+  })
 }
 
 const fetchGifsFromGiphy = (query, format, limit, res) => {
@@ -62,8 +87,8 @@ const fetchGifsFromGiphy = (query, format, limit, res) => {
       })
 
       // returned gifs
-      let numGifs = Math.min(giphyRes.data.length, limit)
-      let indices = chance.unique(chance.integer, numGifs, {min: 0, max: giphyRes.data.length-1})
+      let numGifs = Math.min(gifCache.length, limit)
+      let indices = chance.unique(chance.integer, numGifs, {min: 0, max: gifCache.length-1})
 
       for (let i = 0; i < indices.length; i++) {
         gifs.push(gifCache[indices[i]])
