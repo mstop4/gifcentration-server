@@ -2,17 +2,21 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 import express from 'express'
+import Chance from 'chance'
 import rClient from '../helpers/redis_db'
 import GphApiClient from 'giphy-js-sdk-core'
 
 const router = express.Router()
 const client = GphApiClient(process.env.GIPHY_APIKEY)
+const chance = new Chance()
 
 router.get('/:format', (req, res) => {
-  rClient.exists(req.query.query, (err, reply) => {
+  rClient.exists(`giphy:${req.query.query}`, (err, reply) => {
     if (reply === 1) {
       // exists, fetch from redis
       console.log('key exists')
+      let limit = Math.min(req.query.limit || 20, process.env.MAX_GIFS_PER_REQUEST)
+      fetchGifsFromGiphy(req.query.query, req.params.format, limit, res)
     } else {
       //doesn't exist, fetch from Giphy
       console.log('key does not exist')
@@ -22,9 +26,15 @@ router.get('/:format', (req, res) => {
   })
 })
 
+const fetchGifsFromRedis = (query, format, limit, res) => {
+  let gifs = ['hi']
+
+  res.setHeader('Content-Type', 'application/json')
+  res.send(JSON.stringify(gifs))
+}
+
 const fetchGifsFromGiphy = (query, format, limit, res) => {
   let gifs = []
-  console.log(limit)
 
   client.search('gifs', {
     'q': query,
@@ -32,9 +42,10 @@ const fetchGifsFromGiphy = (query, format, limit, res) => {
   })
 
     .then((giphyRes) => {
-      let numGifs = Math.min(giphyRes.data.length, limit)
+      // gif cache
+      let gifCache = []
 
-      for (let i = 0; i < numGifs; i++) {
+      for (let i = 0; i < giphyRes.data.length; i++) {
         let url = null
         
         // return GIFs with less than 200px height and width
@@ -43,7 +54,19 @@ const fetchGifsFromGiphy = (query, format, limit, res) => {
         } else {
           url = `https://media.giphy.com/media/${giphyRes.data[i].images.media_id}/200w.gif`
         }
-        gifs.push(url)
+        gifCache.push(url)
+      }
+
+      rClient.sadd([`giphy:${query}`, ...gifCache], (reply) => {
+        console.log(`Redis: adding giphy:${query} - ${reply}`)
+      })
+
+      // returned gifs
+      let numGifs = Math.min(giphyRes.data.length, limit)
+      let indices = chance.unique(chance.integer, numGifs, {min: 0, max: giphyRes.data.length-1})
+
+      for (let i = 0; i < indices.length; i++) {
+        gifs.push(gifCache[indices[i]])
       }
     })
 
