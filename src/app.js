@@ -9,6 +9,7 @@ import morgan from 'morgan'
 //Routes
 import index from './routes/index'
 import gifme from './routes/gifme'
+import redis from './routes/redis'
 
 const app = express()
 app.use(morgan('dev'))
@@ -20,6 +21,7 @@ app.set('view engine', 'ejs')
 
 app.use('/', index)
 app.use('/gifme', gifme)
+app.use('/redis', redis)
 
 // eslint-disable-next-line no-unused-vars
 const server = app.listen(process.env.SERVER_PORT, () => {

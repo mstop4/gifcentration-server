@@ -2,20 +2,73 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 import express from 'express'
+import Chance from 'chance'
+import rClient from '../helpers/redis_db'
 import GphApiClient from 'giphy-js-sdk-core'
 
 const router = express.Router()
 const client = GphApiClient(process.env.GIPHY_APIKEY)
+const chance = new Chance()
 
 router.get('/:format', (req, res) => {
+  rClient.exists(`giphy:${req.query.query}`, (err, reply) => {
+
+    let limit = Math.min(req.query.limit || 20, process.env.MAX_GIFS_PER_REQUEST)
+
+    if (reply === 1) {
+      // exists, fetch from redis
+      fetchGifsFromRedis(req.query.query, req.params.format, limit, res)
+    } else {
+      //doesn't exist, fetch from Giphy
+      fetchGifsFromGiphy(req.query.query, req.params.format, limit, res)
+    }
+  })
+})
+
+const fetchGifsFromRedis = (query, format, limit, res) => {
+  let gifs = []
+
+  rClient.smembers(`giphy:${query}`, (err, reply) => {
+
+    if (err) {
+      gifs = ['error']
+    } else {
+      // returned gifs
+      let numGifs = Math.min(reply.length, limit)
+      let indices = chance.unique(chance.integer, numGifs, {min: 0, max: reply.length-1})
+
+      for (let i = 0; i < indices.length; i++) {
+        gifs.push(reply[indices[i]])
+      }
+    }
+
+    if (format === 'json') {
+      res.setHeader('Content-Type', 'application/json')
+      res.send(JSON.stringify(gifs))
+
+    } else if (format === 'html') {
+      res.render('pages/gallery', {
+        gifs: gifs
+      })
+      
+    } else {
+      res.send('WAT')
+    }
+  })
+}
+
+const fetchGifsFromGiphy = (query, format, limit, res) => {
   let gifs = []
 
   client.search('gifs', {
-    'q': req.query.query,
-    'limit': req.query.limit
+    'q': query,
+    'limit': process.env.MAX_GIFS_PER_REQUEST
   })
 
     .then((giphyRes) => {
+      // gif cache
+      let gifCache = []
+
       for (let i = 0; i < giphyRes.data.length; i++) {
         let url = null
         
@@ -25,7 +78,21 @@ router.get('/:format', (req, res) => {
         } else {
           url = `https://media.giphy.com/media/${giphyRes.data[i].images.media_id}/200w.gif`
         }
-        gifs.push(url)
+        gifCache.push(url)
+      }
+
+      if (gifCache.length > 0) {
+        rClient.sadd([`giphy:${query}`, ...gifCache], (reply) => {
+          console.log(`Redis: adding giphy:${query} - ${reply}`)
+        })
+      }
+
+      // returned gifs
+      let numGifs = Math.min(gifCache.length, limit)
+      let indices = chance.unique(chance.integer, numGifs, {min: 0, max: gifCache.length-1})
+
+      for (let i = 0; i < indices.length; i++) {
+        gifs.push(gifCache[indices[i]])
       }
     })
 
@@ -34,11 +101,11 @@ router.get('/:format', (req, res) => {
     })
 
     .finally(() => {
-      if (req.params.format === 'json') {
+      if (format === 'json') {
         res.setHeader('Content-Type', 'application/json')
         res.send(JSON.stringify(gifs))
 
-      } else if (req.params.format === 'html') {
+      } else if (format === 'html') {
         res.render('pages/gallery', {
           gifs: gifs
         })
@@ -47,6 +114,6 @@ router.get('/:format', (req, res) => {
         res.send('WAT')
       }
     })
-})
+}
 
 module.exports = router
