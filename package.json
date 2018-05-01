@@ -15,6 +15,9 @@
   "author": "mstop4 <mstop4@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "babel": "^6.23.0",
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
     "body-parser": "^1.18.2",
     "chance": "^1.0.16",
     "dotenv": "^5.0.1",
@@ -25,9 +28,6 @@
     "redis": "^2.8.0"
   },
   "devDependencies": {
-    "babel": "^6.23.0",
-    "babel-cli": "^6.26.0",
-    "babel-preset-env": "^1.6.1",
     "chai": "^4.1.2",
     "eslint": "^4.19.1",
     "mocha": "^5.1.1",
