@@ -84,6 +84,9 @@ const fetchGifsFromGiphy = (query, format, limit, res) => {
       if (gifCache.length > 0) {
         rClient.sadd([`giphy:${query}`, ...gifCache], (reply) => {
           console.log(`Redis: adding giphy:${query} - ${reply}`)
+          rClient.expire(`giphy:${query}`, process.env.KEY_EXPIRY_TIME, (reply) => {
+            console.log(`Redis: setting expiry of giphy:${query} to ${process.env.KEY_EXPIRY_TIME} - ${reply}`)
+          })
         })
       }
 
