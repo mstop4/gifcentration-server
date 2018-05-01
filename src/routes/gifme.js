@@ -74,9 +74,9 @@ const fetchGifsFromGiphy = (query, format, limit, res) => {
         
         // return GIFs with less than 200px height and width
         if (parseInt(giphyRes.data[i].images.fixed_width.height) > 200) {
-          url = `https://media.giphy.com/media/${giphyRes.data[i].images.media_id}/200.gif`
+          url = giphyRes.data[i].images.fixed_height.gif_url
         } else {
-          url = `https://media.giphy.com/media/${giphyRes.data[i].images.media_id}/200w.gif`
+          url = giphyRes.data[i].images.fixed_width.gif_url
         }
         gifCache.push(url)
       }
