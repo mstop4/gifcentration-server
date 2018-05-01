@@ -18,12 +18,13 @@ app.use(bodyParser.urlencoded({ extended: false }))
 
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'ejs')
+app.set('port', process.env.PORT || 3000)
 
 app.use('/', index)
 app.use('/gifme', gifme)
 app.use('/redis', redis)
 
 // eslint-disable-next-line no-unused-vars
-const server = app.listen(process.env.SERVER_PORT, () => {
-  console.log(`GIFcentration Server listening on port ${process.env.SERVER_PORT}`)
+const server = app.listen(app.get('port'), () => {
+  console.log(`GIFcentration Server listening on port ${app.get('port')}`)
 })
