@@ -11,9 +11,20 @@
 
     <main>
       <% if (gifs[0] !== 'error') { %>
-        <% gifs.forEach(function(gif) { %>
-            <img src=<%= gif %>>
-        <% }); %>
+        <% var imgsInRow = 0 %>
+        <% var maxImgsPerRow = 6 %>
+        <table>
+          <tr>
+            <% gifs.forEach(function(gif) { %>
+              <% if (imgsInRow >= maxImgsPerRow) { %>
+                </tr><tr>
+                <% imgsInRow = 0 %>
+              <% } %>
+              <td><img src=<%= gif %>></td>
+              <% imgsInRow++ %>
+            <% }); %>
+          </tr>
+        </table>
       <% } else { %>
         <p>Error getting results</p>
       <% } %>
