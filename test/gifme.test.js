@@ -1,12 +1,13 @@
 require('dotenv').config()
-let chai = require('chai')
-let expect = chai.expect
-let request = require('request')
+const chai = require('chai')
+const expect = chai.expect
+const request = require('request')
+const port = process.env.PORT || 3001
 
 describe('/gifme endpoint', () => {
 
   it('should get search results for "cats" as an array', (done) => {
-    request(`http://localhost:${process.env.SERVER_PORT}/gifme/json?query=cats&limit=5`, (error, res, body) => {
+    request(`http://localhost:${port}/gifme/json?query=cats&limit=5`, (error, res, body) => {
 
       let json = JSON.parse(body)
       expect(json).to.be.an('array').that.is.not.empty.and.does.not.include('error')
@@ -15,7 +16,7 @@ describe('/gifme endpoint', () => {
   })
 
   it('a blank query should return an empty array', (done) => {
-    request(`http://localhost:${process.env.SERVER_PORT}/gifme/json?query=&limit=5`, (error, res, body) => {
+    request(`http://localhost:${port}/gifme/json?query=&limit=5`, (error, res, body) => {
 
       let json = JSON.parse(body)
       expect(json).to.be.an('array').that.is.empty
@@ -24,7 +25,7 @@ describe('/gifme endpoint', () => {
   })
 
   it('a missing query should still return some results', (done) => {
-    request(`http://localhost:${process.env.SERVER_PORT}/gifme/json?limit=5`, (error, res, body) => {
+    request(`http://localhost:${port}/gifme/json?limit=5`, (error, res, body) => {
 
       let json = JSON.parse(body)
       expect(json).to.be.an('array').that.is.not.empty.and.does.not.include('error')
@@ -33,7 +34,7 @@ describe('/gifme endpoint', () => {
   })
 
   it('should fetch 50 dog GIFs', (done) => {
-    request(`http://localhost:${process.env.SERVER_PORT}/gifme/json?query=dog&limit=50`, (error, res, body) => {
+    request(`http://localhost:${port}/gifme/json?query=dog&limit=50`, (error, res, body) => {
 
       let json = JSON.parse(body)
       expect(json).to.be.an('array').that.has.lengthOf(50)
@@ -42,7 +43,7 @@ describe('/gifme endpoint', () => {
   })
 
   it('no limit provided, it should fetch the default (20) number of GIFs', (done) => {
-    request(`http://localhost:${process.env.SERVER_PORT}/gifme/json?query=dog`, (error, res, body) => {
+    request(`http://localhost:${port}/gifme/json?query=dog`, (error, res, body) => {
 
       let json = JSON.parse(body)
       expect(json).to.be.an('array').that.has.lengthOf(20)
@@ -51,7 +52,7 @@ describe('/gifme endpoint', () => {
   })
 
   it('limit higher than maximum, it should on fetch the maximum (100) number of GIFs', (done) => {
-    request(`http://localhost:${process.env.SERVER_PORT}/gifme/json?query=dog&limit=200`, (error, res, body) => {
+    request(`http://localhost:${port}/gifme/json?query=dog&limit=200`, (error, res, body) => {
 
       let json = JSON.parse(body)
       expect(json).to.be.an('array').that.has.lengthOf(100)
