@@ -52,7 +52,7 @@ const fetchGifsFromRedis = (query, format, limit, res) => {
       })
       
     } else {
-      res.send('WAT')
+      res.send('Error: Unknown format')
     }
   })
 }
