@@ -114,7 +114,7 @@ const fetchGifsFromGiphy = (query, format, limit, res) => {
         })
         
       } else {
-        res.send('WAT')
+        res.send('Error: Unknwon format')
       }
     })
 }
