@@ -9,7 +9,7 @@ describe('Redis DB', () => {
     request.post({
       url: `http://localhost:${port}/redis`,
       qs: { str: 'Hello World!'}
-    }, (error, res, body) => {
+    }, (/*error, res, body*/) => {
 
       request(`http://localhost:${port}/redis`, (error, res, body) => {
         expect(body).to.equal('Hello World!')
