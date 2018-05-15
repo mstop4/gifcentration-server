@@ -31,14 +31,14 @@ const fetchGifsFromRedis = (query, format, limit, res) => {
   rClient.smembers(`giphy:${query}`, (err, reply) => {
 
     if (err) {
-      gifs = ['error']
+      gifs = [{id: 'error', url: 'error'}]
     } else {
       // returned gifs
       let numGifs = Math.min(reply.length, limit)
       let indices = chance.unique(chance.integer, numGifs, {min: 0, max: reply.length-1})
 
       for (let i = 0; i < indices.length; i++) {
-        gifs.push(reply[indices[i]])
+        gifs.push(JSON.parse(reply[indices[i]]))
       }
     }
 
@@ -70,6 +70,7 @@ const fetchGifsFromGiphy = (query, format, limit, res) => {
       let gifCache = []
 
       for (let i = 0; i < giphyRes.data.length; i++) {
+        let id = giphyRes.data[i].id
         let url = null
         
         // return GIFs with less than 200px height and width
@@ -78,11 +79,17 @@ const fetchGifsFromGiphy = (query, format, limit, res) => {
         } else {
           url = giphyRes.data[i].images.fixed_width.gif_url
         }
-        gifCache.push(url)
+        gifCache.push({ id, url })
       }
 
       if (gifCache.length > 0) {
-        rClient.sadd([`giphy:${query}`, ...gifCache], (reply) => {
+
+        //Serialize all objects in gifCache
+        let serializedGifCache = gifCache.map( gif => {
+          return JSON.stringify(gif)
+        })
+
+        rClient.sadd([`giphy:${query}`, ...serializedGifCache], (reply) => {
           console.log(`Redis: adding giphy:${query} - ${reply}`)
           rClient.expire(`giphy:${query}`, process.env.KEY_EXPIRY_TIME, (reply) => {
             console.log(`Redis: setting expiry of giphy:${query} to ${process.env.KEY_EXPIRY_TIME} - ${reply}`)
@@ -100,7 +107,7 @@ const fetchGifsFromGiphy = (query, format, limit, res) => {
     })
 
     .catch(() => {
-      gifs = ['error']
+      gifs = [{id: 'error', url: 'error'}]
     })
 
     .finally(() => {
