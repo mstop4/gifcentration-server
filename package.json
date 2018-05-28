@@ -24,6 +24,7 @@
     "ejs": "^2.5.9",
     "express": "^4.16.3",
     "giphy-js-sdk-core": "^1.0.3",
+    "mongoose": "^5.1.2",
     "morgan": "^1.9.0",
     "redis": "^2.8.0"
   },
