@@ -2,6 +2,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 import express from 'express'
+import mongoose from 'mongoose'
 import Chance from 'chance'
 import rClient from '../helpers/redis_db'
 import mClient from '../helpers/mongo_db'
@@ -23,7 +24,14 @@ router.get('/:format', (req, res) => {
       fetchGifsFromGiphy(req.query.query, req.params.format, limit, res)
     }
     
-    mClient.addSearch(req.query.query)
+    const newSearch = new mClient.Search({ query: req.query.query })
+    newSearch.save((err, search) => {
+      if (err) {
+        console.log(err)
+      } else {
+        console.log(search.query)
+      }
+    })
   })
 })
 
