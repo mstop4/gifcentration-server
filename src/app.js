@@ -10,7 +10,6 @@ import cors from 'cors'
 //Routes
 import index from './routes/index'
 import gifme from './routes/gifme'
-import redis from './routes/redis'
 
 const app = express()
 app.use(morgan('dev'))
@@ -24,7 +23,6 @@ app.set('port', process.env.PORT || 3001)
 
 app.use('/', index)
 app.use('/gifme', gifme)
-app.use('/redis', redis)
 
 // eslint-disable-next-line no-unused-vars
 const server = app.listen(app.get('port'), () => {
