@@ -2,7 +2,6 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 import express from 'express'
-import mongoose from 'mongoose'
 import Chance from 'chance'
 import rClient from '../helpers/redis_db'
 import mClient from '../helpers/mongo_db'

@@ -24,7 +24,7 @@ app.set('port', process.env.PORT || 3001)
 
 app.use('/', index)
 app.use('/gifme', gifme)
-app.use('/searchStats', searchStats)
+app.use('/searchstats', searchStats)
 
 // eslint-disable-next-line no-unused-vars
 const server = app.listen(app.get('port'), () => {
