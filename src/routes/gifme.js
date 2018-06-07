@@ -4,6 +4,7 @@ dotenv.config()
 import express from 'express'
 import Chance from 'chance'
 import rClient from '../helpers/redis_db'
+import mClient from '../helpers/mongo_db'
 import GphApiClient from 'giphy-js-sdk-core'
 
 const router = express.Router()
@@ -12,7 +13,6 @@ const chance = new Chance()
 
 router.get('/:format', (req, res) => {
   rClient.exists(`giphy:${req.query.query}`, (err, reply) => {
-
     let limit = Math.min(req.query.limit || 20, process.env.MAX_GIFS_PER_REQUEST)
 
     if (reply === 1) {
@@ -22,6 +22,8 @@ router.get('/:format', (req, res) => {
       //doesn't exist, fetch from Giphy
       fetchGifsFromGiphy(req.query.query, req.params.format, limit, res)
     }
+    
+    mClient.addSearch(req.query.query)
   })
 })
 

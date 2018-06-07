@@ -19,7 +19,7 @@
             "unix"
         ],
         "no-console": [
-            "warn"
+            "off"
         ],
         "quotes": [
             "error",
