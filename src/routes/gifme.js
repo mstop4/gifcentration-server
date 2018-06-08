@@ -12,23 +12,27 @@ const client = GphApiClient(process.env.GIPHY_APIKEY)
 const chance = new Chance()
 
 router.get('/:format', (req, res) => {
-  rClient.exists(`giphy:${req.query.query}`, (err, reply) => {
+
+  const theQuery = req.query.query.toLowerCase()
+
+  rClient.exists(`giphy:${theQuery}`, (err, reply) => {
     let limit = Math.min(req.query.limit || 20, process.env.MAX_GIFS_PER_REQUEST)
 
     if (reply === 1) {
       // exists, fetch from redis
-      fetchGifsFromRedis(req.query.query, req.params.format, limit, res)
+      fetchGifsFromRedis(theQuery, req.params.format, limit, res)
     } else {
       //doesn't exist, fetch from Giphy
-      fetchGifsFromGiphy(req.query.query, req.params.format, limit, res)
+      fetchGifsFromGiphy(theQuery, req.params.format, limit, res)
     }
     
-    const newSearch = new mClient.Search({ query: req.query.query })
+    // add search to MongoDB
+    const newSearch = new mClient.Search({ query: theQuery })
     newSearch.save((err, search) => {
       if (err) {
-        console.log(err)
+        console.log(`Error: ${err}`)
       } else {
-        console.log(search.query)
+        console.log(`Search added: ${search.query}`)
       }
     })
   })
