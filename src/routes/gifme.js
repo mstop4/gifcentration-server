@@ -11,6 +11,18 @@ const router = express.Router()
 const client = GphApiClient(process.env.GIPHY_APIKEY)
 const chance = new Chance()
 
+const saveSearchToDB = (query) => {
+  // add search to MongoDB
+  const newSearch = new mClient.Search({ query: query })
+  newSearch.save((err, search) => {
+    if (err) {
+      console.log(`Error: ${err}`)
+    } else {
+      console.log(`Search added: ${search.query}`)
+    }
+  })
+}
+
 router.get('/:format', (req, res) => {
 
   const theQuery = req.query.query.toLowerCase()
@@ -25,16 +37,6 @@ router.get('/:format', (req, res) => {
       //doesn't exist, fetch from Giphy
       fetchGifsFromGiphy(theQuery, req.params.format, limit, res)
     }
-    
-    // add search to MongoDB
-    const newSearch = new mClient.Search({ query: theQuery })
-    newSearch.save((err, search) => {
-      if (err) {
-        console.log(`Error: ${err}`)
-      } else {
-        console.log(`Search added: ${search.query}`)
-      }
-    })
   })
 })
 
@@ -53,6 +55,8 @@ const fetchGifsFromRedis = (query, format, limit, res) => {
       for (let i = 0; i < indices.length; i++) {
         gifs.push(JSON.parse(reply[indices[i]]))
       }
+
+      saveSearchToDB(query)
     }
 
     if (format === 'json') {
@@ -108,6 +112,8 @@ const fetchGifsFromGiphy = (query, format, limit, res) => {
             console.log(`Redis: setting expiry of giphy:${query} to ${process.env.KEY_EXPIRY_TIME} - ${reply}`)
           })
         })
+
+        saveSearchToDB(query)
       }
 
       // returned gifs
