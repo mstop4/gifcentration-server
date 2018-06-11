@@ -4,23 +4,38 @@ dotenv.config()
 import express from 'express'
 import Chance from 'chance'
 import rClient from '../helpers/redis_db'
+import mClient from '../helpers/mongo_db'
 import GphApiClient from 'giphy-js-sdk-core'
 
 const router = express.Router()
 const client = GphApiClient(process.env.GIPHY_APIKEY)
 const chance = new Chance()
 
-router.get('/:format', (req, res) => {
-  rClient.exists(`giphy:${req.query.query}`, (err, reply) => {
+const saveSearchToDB = (query) => {
+  // add search to MongoDB
+  const newSearch = new mClient.Search({ query: query })
+  newSearch.save((err, search) => {
+    if (err) {
+      console.log(`Error: ${err}`)
+    } else {
+      console.log(`Search added: ${search.query}`)
+    }
+  })
+}
 
+router.get('/:format', (req, res) => {
+
+  const theQuery = req.query.query.toLowerCase()
+
+  rClient.exists(`giphy:${theQuery}`, (err, reply) => {
     let limit = Math.min(req.query.limit || 20, process.env.MAX_GIFS_PER_REQUEST)
 
     if (reply === 1) {
       // exists, fetch from redis
-      fetchGifsFromRedis(req.query.query, req.params.format, limit, res)
+      fetchGifsFromRedis(theQuery, req.params.format, limit, res)
     } else {
       //doesn't exist, fetch from Giphy
-      fetchGifsFromGiphy(req.query.query, req.params.format, limit, res)
+      fetchGifsFromGiphy(theQuery, req.params.format, limit, res)
     }
   })
 })
@@ -40,6 +55,8 @@ const fetchGifsFromRedis = (query, format, limit, res) => {
       for (let i = 0; i < indices.length; i++) {
         gifs.push(JSON.parse(reply[indices[i]]))
       }
+
+      saveSearchToDB(query)
     }
 
     if (format === 'json') {
@@ -95,6 +112,8 @@ const fetchGifsFromGiphy = (query, format, limit, res) => {
             console.log(`Redis: setting expiry of giphy:${query} to ${process.env.KEY_EXPIRY_TIME} - ${reply}`)
           })
         })
+
+        saveSearchToDB(query)
       }
 
       // returned gifs
