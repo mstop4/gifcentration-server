@@ -1,6 +1,16 @@
-# GIFcentration Server
+# GIFcentration (Server)
 
-[![dependencies Status](https://david-dm.org/mstop4/gifcentration/status.svg)](https://david-dm.org/mstop4/gifcentration)
-[![devDependencies Status](https://david-dm.org/mstop4/gifcentration/dev-status.svg)](https://david-dm.org/mstop4/gifcentration?type=dev)
+[![dependencies Status](https://david-dm.org/mstop4/gifcentration-server/status.svg)](https://david-dm.org/mstop4/gifcentration)
+[![devDependencies Status](https://david-dm.org/mstop4/gifcentration-sever/dev-status.svg)](https://david-dm.org/mstop4/gifcentration?type=dev)
 
-The backend of the GIFcentration app. Fetches a random assortment of GIFs from Giphy.
+Concentration (pairs-matching) game powered by Giphy.
+
+## Stack
+
+* MongoDB / Mongoose
+* Express.js
+* React
+* Node v8.11.1
+* Giphy JS SDK
+* Redis
+* Chance.js
