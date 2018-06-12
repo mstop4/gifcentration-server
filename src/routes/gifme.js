@@ -95,7 +95,6 @@ const fetchGifsFromGiphy = (query, format, limit, res) => {
     'q': query,
     'limit': process.env.MAX_GIFS_PER_REQUEST
   })
-
     .then((giphyRes) => {
       // gif cache
       let gifCache = []
