@@ -6,13 +6,13 @@ import Chance from 'chance'
 import rClient from '../helpers/redis_db'
 import mClient from '../helpers/mongo_db'
 import GphApiClient from 'giphy-js-sdk-core'
+import fetchStatus from '../helpers/fetchStatus'
 
 const router = express.Router()
 const gClient = GphApiClient(process.env.GIPHY_APIKEY)
 const chance = new Chance()
 
 router.get('/search/:format', (req, res) => {
-
   const theQuery = req.query.query.toLowerCase()
 
   rClient.exists(`giphy:${theQuery}`, (err, reply) => {
@@ -55,26 +55,34 @@ const saveSearchToDB = (query) => {
 }
 
 const sendResponse = (res, format, data) => {
+  console.dir(data)
+
   if (format === 'json') {
     res.setHeader('Content-Type', 'application/json')
     res.send(JSON.stringify(data))
-
-  } else if (format === 'html') {
+  } 
+  
+  else if (format === 'html') {
     res.render('pages/gallery', {
-      gifs: data
+      data: data
     })
-    
-  } else {
+  } 
+  
+  else {
     res.send('Error: Unknown format')
   }
 }
 
 const fetchGifsFromRedis = (query, format, limit, res) => {
   let gifs = []
+  let data = {
+    status: null,
+    gifs: gifs
+  }
 
   rClient.smembers(`giphy:${query}`, (err, reply) => {
     if (err) {
-      gifs = [{id: 'error', url: 'error'}]
+      data.status = fetchStatus.redisError
     } else {
       // returned gifs
       let numGifs = Math.min(reply.length, limit)
@@ -84,15 +92,20 @@ const fetchGifsFromRedis = (query, format, limit, res) => {
         gifs.push(JSON.parse(reply[indices[i]]))
       }
 
+      data.status = fetchStatus.ok
       saveSearchToDB(query)
     }
 
-    sendResponse(res, format, gifs)
+    sendResponse(res, format, data)
   })
 }
 
 const fetchGifsFromGiphy = (query, format, limit, res) => {
   let gifs = []
+  let data = {
+    status: null,
+    gifs: gifs
+  }
 
   gClient.search('gifs', {
     'q': query,
@@ -139,23 +152,33 @@ const fetchGifsFromGiphy = (query, format, limit, res) => {
       for (let i = 0; i < indices.length; i++) {
         gifs.push(gifCache[indices[i]])
       }
+
+      data.status = fetchStatus.ok
     })
 
-    .catch(() => {
-      gifs = [{id: 'error', url: 'error'}]
+    .catch((err) => {
+      if (err.code === 'ENOTFOUND') {
+        data.status = fetchStatus.giphyError
+      } else {
+        data.status = fetchStatus.genericError
+      }
     })
 
     .finally(() => {
-      sendResponse(res, format, gifs)
+      sendResponse(res, format, data)
     })
 }
 
 const fetchTrendingFromRedis = (format, limit, res) => {
   let gifs = []
+  let data = {
+    status: null,
+    gifs: gifs
+  }
 
   rClient.smembers('giphy$:trending', (err, reply) => {
     if (err) {
-      gifs = [{id: 'error', url: 'error'}]
+      data.status = fetchStatus.redisError
     } else {
       // returned gifs
       let numGifs = Math.min(reply.length, limit)
@@ -165,12 +188,18 @@ const fetchTrendingFromRedis = (format, limit, res) => {
         gifs.push(JSON.parse(reply[indices[i]]))
       }
     }
-    sendResponse(res, format, gifs)
+
+    data.status = fetchStatus.ok
+    sendResponse(res, format, data)
   })
 }
 
 const fetchTrendingFromGiphy = (format, limit, res) => {
   let gifs = []
+  let data = {
+    status: null,
+    gifs: gifs
+  }
 
   gClient.trending('gifs', {
     'limit': process.env.MAX_GIFS_PER_REQUEST
@@ -215,14 +244,20 @@ const fetchTrendingFromGiphy = (format, limit, res) => {
       for (let i = 0; i < indices.length; i++) {
         gifs.push(gifCache[indices[i]])
       }
+
+      data.status = fetchStatus.ok
     })
 
-    .catch(() => {
-      gifs = [{id: 'error', url: 'error'}]
+    .catch((err) => {
+      if (err.code === 'ENOTFOUND') {
+        data.status = fetchStatus.giphyError
+      } else {
+        data.status = fetchStatus.genericError
+      }
     })
 
     .finally(() => {
-      sendResponse(res, format, gifs)
+      sendResponse(res, format, data)
     })
 }
 
