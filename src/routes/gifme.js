@@ -54,6 +54,21 @@ router.get('/trending/:format', (req, res) => {
   })
 })
 
+const sendResponse = (res, format, data) => {
+  if (format === 'json') {
+    res.setHeader('Content-Type', 'application/json')
+    res.send(JSON.stringify(data))
+
+  } else if (format === 'html') {
+    res.render('pages/gallery', {
+      gifs: data
+    })
+    
+  } else {
+    res.send('Error: Unknown format')
+  }
+}
+
 const fetchGifsFromRedis = (query, format, limit, res) => {
   let gifs = []
 
@@ -73,18 +88,7 @@ const fetchGifsFromRedis = (query, format, limit, res) => {
       saveSearchToDB(query)
     }
 
-    if (format === 'json') {
-      res.setHeader('Content-Type', 'application/json')
-      res.send(JSON.stringify(gifs))
-
-    } else if (format === 'html') {
-      res.render('pages/gallery', {
-        gifs: gifs
-      })
-      
-    } else {
-      res.send('Error: Unknown format')
-    }
+    sendResponse(res, format, gifs)
   })
 }
 
@@ -143,18 +147,7 @@ const fetchGifsFromGiphy = (query, format, limit, res) => {
     })
 
     .finally(() => {
-      if (format === 'json') {
-        res.setHeader('Content-Type', 'application/json')
-        res.send(JSON.stringify(gifs))
-
-      } else if (format === 'html') {
-        res.render('pages/gallery', {
-          gifs: gifs
-        })
-        
-      } else {
-        res.send('Error: Unknwon format')
-      }
+      sendResponse(res, format, gifs)
     })
 }
 
@@ -175,18 +168,7 @@ const fetchTrendingFromRedis = (format, limit, res) => {
       }
     }
 
-    if (format === 'json') {
-      res.setHeader('Content-Type', 'application/json')
-      res.send(JSON.stringify(gifs))
-
-    } else if (format === 'html') {
-      res.render('pages/gallery', {
-        gifs: gifs
-      })
-      
-    } else {
-      res.send('Error: Unknown format')
-    }
+    sendResponse(res, format, gifs)
   })
 }
 
@@ -243,18 +225,7 @@ const fetchTrendingFromGiphy = (format, limit, res) => {
     })
 
     .finally(() => {
-      if (format === 'json') {
-        res.setHeader('Content-Type', 'application/json')
-        res.send(JSON.stringify(gifs))
-
-      } else if (format === 'html') {
-        res.render('pages/gallery', {
-          gifs: gifs
-        })
-        
-      } else {
-        res.send('Error: Unknwon format')
-      }
+      sendResponse(res, format, gifs)
     })
 }
 
