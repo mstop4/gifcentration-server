@@ -8,20 +8,8 @@ import mClient from '../helpers/mongo_db'
 import GphApiClient from 'giphy-js-sdk-core'
 
 const router = express.Router()
-const client = GphApiClient(process.env.GIPHY_APIKEY)
+const gClient = GphApiClient(process.env.GIPHY_APIKEY)
 const chance = new Chance()
-
-const saveSearchToDB = (query) => {
-  // add search to MongoDB
-  const newSearch = new mClient.Search({ query: query })
-  newSearch.save((err, search) => {
-    if (err) {
-      console.log(`Error: ${err}`)
-    } else {
-      console.log(`Search added: ${search.query}`)
-    }
-  })
-}
 
 router.get('/search/:format', (req, res) => {
 
@@ -54,6 +42,18 @@ router.get('/trending/:format', (req, res) => {
   })
 })
 
+const saveSearchToDB = (query) => {
+  // add search to MongoDB
+  const newSearch = new mClient.Search({ query: query })
+  newSearch.save((err, search) => {
+    if (err) {
+      console.log(`Error: ${err}`)
+    } else {
+      console.log(`Search added: ${search.query}`)
+    }
+  })
+}
+
 const sendResponse = (res, format, data) => {
   if (format === 'json') {
     res.setHeader('Content-Type', 'application/json')
@@ -73,7 +73,6 @@ const fetchGifsFromRedis = (query, format, limit, res) => {
   let gifs = []
 
   rClient.smembers(`giphy:${query}`, (err, reply) => {
-
     if (err) {
       gifs = [{id: 'error', url: 'error'}]
     } else {
@@ -95,7 +94,7 @@ const fetchGifsFromRedis = (query, format, limit, res) => {
 const fetchGifsFromGiphy = (query, format, limit, res) => {
   let gifs = []
 
-  client.search('gifs', {
+  gClient.search('gifs', {
     'q': query,
     'limit': process.env.MAX_GIFS_PER_REQUEST
   })
@@ -155,7 +154,6 @@ const fetchTrendingFromRedis = (format, limit, res) => {
   let gifs = []
 
   rClient.smembers('giphy$:trending', (err, reply) => {
-
     if (err) {
       gifs = [{id: 'error', url: 'error'}]
     } else {
@@ -167,7 +165,6 @@ const fetchTrendingFromRedis = (format, limit, res) => {
         gifs.push(JSON.parse(reply[indices[i]]))
       }
     }
-
     sendResponse(res, format, gifs)
   })
 }
@@ -175,7 +172,7 @@ const fetchTrendingFromRedis = (format, limit, res) => {
 const fetchTrendingFromGiphy = (format, limit, res) => {
   let gifs = []
 
-  client.trending('gifs', {
+  gClient.trending('gifs', {
     'limit': process.env.MAX_GIFS_PER_REQUEST
   })
 
