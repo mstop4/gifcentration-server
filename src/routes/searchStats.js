@@ -7,7 +7,7 @@ import mClient from '../helpers/mongo_db'
 const router = express.Router()
 
 router.get('/', (req, res) => {
-  res.send('Try /searchStats/popular instead')
+  res.status(400).send('Try /searchStats/popular instead')
 })
 
 router.get('/popular', (req, res) => {
@@ -20,9 +20,9 @@ router.get('/popular', (req, res) => {
   ], (err, searches) => {
     res.setHeader('Content-Type', 'application/json')
     if (err) {
-      res.send(JSON.stringify([]))
+      res.status(500).send(JSON.stringify([]))
     } else {
-      res.send(JSON.stringify(searches))
+      res.status(200).send(JSON.stringify(searches))
     }
   })
 })
@@ -34,9 +34,9 @@ router.get('/recent', (req, res) => {
     .exec((err, searches) => {
       res.setHeader('Content-Type', 'application/json')
       if (err) {
-        res.send(JSON.stringify([]))
+        res.status(500).send(JSON.stringify([]))
       } else {
-        res.send(JSON.stringify(searches))
+        res.status(200).send(JSON.stringify(searches))
       }
     })
 })
