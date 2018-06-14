@@ -16,7 +16,9 @@ router.get('/popular', (req, res) => {
       _id: '$query',
       count: { $sum: 1 }
     }},
-    { $sort: { count: -1 } }
+    { $sort: { count: -1 } },
+    { $limit: parseInt(req.query.limit) },
+    // { $limit: req.query.limit }
   ], (err, searches) => {
     res.setHeader('Content-Type', 'application/json')
     if (err) {
