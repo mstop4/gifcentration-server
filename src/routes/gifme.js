@@ -6,25 +6,13 @@ import Chance from 'chance'
 import rClient from '../helpers/redis_db'
 import mClient from '../helpers/mongo_db'
 import GphApiClient from 'giphy-js-sdk-core'
+import fetchStatus from '../helpers/fetchStatus'
 
 const router = express.Router()
-const client = GphApiClient(process.env.GIPHY_APIKEY)
+const gClient = GphApiClient(process.env.GIPHY_APIKEY)
 const chance = new Chance()
 
-const saveSearchToDB = (query) => {
-  // add search to MongoDB
-  const newSearch = new mClient.Search({ query: query })
-  newSearch.save((err, search) => {
-    if (err) {
-      console.log(`Error: ${err}`)
-    } else {
-      console.log(`Search added: ${search.query}`)
-    }
-  })
-}
-
 router.get('/search/:format', (req, res) => {
-
   const theQuery = req.query.query.toLowerCase()
 
   rClient.exists(`giphy:${theQuery}`, (err, reply) => {
@@ -54,13 +42,54 @@ router.get('/trending/:format', (req, res) => {
   })
 })
 
+const logSearchToDB = (query) => {
+  // add search to MongoDB
+  const newSearch = new mClient.Search({ query: query })
+  newSearch.save((err, search) => {
+    if (err) {
+      console.log(`Error: ${err}`)
+    } else {
+      console.log(`Search added: ${search.query}`)
+    }
+  })
+}
+
+const sendResponse = (res, format, data, httpStatus, query) => {
+  if (format === 'json') {
+    if (query !== null && httpStatus === 200) {
+      logSearchToDB(query)
+    }
+    res.setHeader('Content-Type', 'application/json')
+    res.status(httpStatus).send(JSON.stringify(data))
+  } 
+  
+  else if (format === 'html') {
+    if (query !== null && httpStatus === 200) {
+      logSearchToDB(query)
+    }
+    res.status(httpStatus).render('pages/gallery', {
+      data: data
+    })
+  } 
+  
+  else {
+    res.status(400).send('Error: Unknown format')
+  }
+}
+
 const fetchGifsFromRedis = (query, format, limit, res) => {
   let gifs = []
+  let data = {
+    status: null,
+    gifs: gifs
+  }
 
   rClient.smembers(`giphy:${query}`, (err, reply) => {
+    let httpStatus = null
 
     if (err) {
-      gifs = [{id: 'error', url: 'error'}]
+      data.status = fetchStatus.redisError
+      httpStatus = 500
     } else {
       // returned gifs
       let numGifs = Math.min(reply.length, limit)
@@ -70,28 +99,23 @@ const fetchGifsFromRedis = (query, format, limit, res) => {
         gifs.push(JSON.parse(reply[indices[i]]))
       }
 
-      saveSearchToDB(query)
+      data.status = fetchStatus.ok
+      httpStatus = 200
     }
 
-    if (format === 'json') {
-      res.setHeader('Content-Type', 'application/json')
-      res.send(JSON.stringify(gifs))
-
-    } else if (format === 'html') {
-      res.render('pages/gallery', {
-        gifs: gifs
-      })
-      
-    } else {
-      res.send('Error: Unknown format')
-    }
+    sendResponse(res, format, data, httpStatus, query)
   })
 }
 
 const fetchGifsFromGiphy = (query, format, limit, res) => {
   let gifs = []
+  let data = {
+    status: null,
+    gifs: gifs
+  }
+  let httpStatus = null
 
-  client.search('gifs', {
+  gClient.search('gifs', {
     'q': query,
     'limit': process.env.MAX_GIFS_PER_REQUEST
   })
@@ -125,8 +149,6 @@ const fetchGifsFromGiphy = (query, format, limit, res) => {
             console.log(`Redis: setting expiry of giphy:${query} to ${process.env.KEY_EXPIRY_TIME} - ${reply}`)
           })
         })
-
-        saveSearchToDB(query)
       }
 
       // returned gifs
@@ -136,35 +158,38 @@ const fetchGifsFromGiphy = (query, format, limit, res) => {
       for (let i = 0; i < indices.length; i++) {
         gifs.push(gifCache[indices[i]])
       }
+
+      data.status = fetchStatus.ok
+      httpStatus = 200
     })
 
-    .catch(() => {
-      gifs = [{id: 'error', url: 'error'}]
+    .catch((err) => {
+      if (err.code === 'ENOTFOUND') {
+        data.status = fetchStatus.giphyError
+        httpStatus = 404
+      } else {
+        data.status = fetchStatus.genericError
+        httpStatus = 500
+      }
     })
 
     .finally(() => {
-      if (format === 'json') {
-        res.setHeader('Content-Type', 'application/json')
-        res.send(JSON.stringify(gifs))
-
-      } else if (format === 'html') {
-        res.render('pages/gallery', {
-          gifs: gifs
-        })
-        
-      } else {
-        res.send('Error: Unknwon format')
-      }
+      sendResponse(res, format, data, httpStatus, query)
     })
 }
 
 const fetchTrendingFromRedis = (format, limit, res) => {
   let gifs = []
+  let data = {
+    status: null,
+    gifs: gifs
+  }
+  let httpStatus = null
 
   rClient.smembers('giphy$:trending', (err, reply) => {
-
     if (err) {
-      gifs = [{id: 'error', url: 'error'}]
+      data.status = fetchStatus.redisError
+      httpStatus = 500
     } else {
       // returned gifs
       let numGifs = Math.min(reply.length, limit)
@@ -173,27 +198,23 @@ const fetchTrendingFromRedis = (format, limit, res) => {
       for (let i = 0; i < indices.length; i++) {
         gifs.push(JSON.parse(reply[indices[i]]))
       }
-    }
 
-    if (format === 'json') {
-      res.setHeader('Content-Type', 'application/json')
-      res.send(JSON.stringify(gifs))
-
-    } else if (format === 'html') {
-      res.render('pages/gallery', {
-        gifs: gifs
-      })
-      
-    } else {
-      res.send('Error: Unknown format')
+      data.status = fetchStatus.ok
+      httpStatus = 200
     }
+    sendResponse(res, format, data, httpStatus, null)
   })
 }
 
 const fetchTrendingFromGiphy = (format, limit, res) => {
   let gifs = []
+  let data = {
+    status: null,
+    gifs: gifs
+  }
+  let httpStatus = null
 
-  client.trending('gifs', {
+  gClient.trending('gifs', {
     'limit': process.env.MAX_GIFS_PER_REQUEST
   })
 
@@ -236,25 +257,23 @@ const fetchTrendingFromGiphy = (format, limit, res) => {
       for (let i = 0; i < indices.length; i++) {
         gifs.push(gifCache[indices[i]])
       }
+
+      data.status = fetchStatus.ok
+      httpStatus = 200
     })
 
-    .catch(() => {
-      gifs = [{id: 'error', url: 'error'}]
+    .catch((err) => {
+      if (err.code === 'ENOTFOUND') {
+        data.status = fetchStatus.giphyError
+        httpStatus = 404
+      } else {
+        data.status = fetchStatus.genericError
+        httpStatus = 500
+      }
     })
 
     .finally(() => {
-      if (format === 'json') {
-        res.setHeader('Content-Type', 'application/json')
-        res.send(JSON.stringify(gifs))
-
-      } else if (format === 'html') {
-        res.render('pages/gallery', {
-          gifs: gifs
-        })
-        
-      } else {
-        res.send('Error: Unknwon format')
-      }
+      sendResponse(res, format, data, httpStatus, null)
     })
 }
 

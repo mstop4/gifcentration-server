@@ -10,7 +10,8 @@
     </header>
 
     <main>
-      <% if (gifs[0].id !== 'error') { %>
+      <% if (data.status === 'OK') { %>
+        <% var gifs = data.gifs %>
         <% var imgsInRow = 0 %>
         <% var maxImgsPerRow = 6 %>
         <table>
@@ -30,7 +31,7 @@
           </tr>
         </table>
       <% } else { %>
-        <p>Error getting results</p>
+        <p>Error - <%= data.status %></p>
       <% } %>
     </main>
   </body>
