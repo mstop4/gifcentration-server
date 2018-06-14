@@ -42,7 +42,7 @@ router.get('/trending/:format', (req, res) => {
   })
 })
 
-const saveSearchToDB = (query) => {
+const logSearchToDB = (query) => {
   // add search to MongoDB
   const newSearch = new mClient.Search({ query: query })
   newSearch.save((err, search) => {
@@ -54,13 +54,19 @@ const saveSearchToDB = (query) => {
   })
 }
 
-const sendResponse = (res, format, data, httpStatus) => {
+const sendResponse = (res, format, data, httpStatus, query) => {
   if (format === 'json') {
+    if (query !== null && httpStatus === 200) {
+      logSearchToDB(query)
+    }
     res.setHeader('Content-Type', 'application/json')
     res.status(httpStatus).send(JSON.stringify(data))
   } 
   
   else if (format === 'html') {
+    if (query !== null && httpStatus === 200) {
+      logSearchToDB(query)
+    }
     res.status(httpStatus).render('pages/gallery', {
       data: data
     })
@@ -95,10 +101,9 @@ const fetchGifsFromRedis = (query, format, limit, res) => {
 
       data.status = fetchStatus.ok
       httpStatus = 200
-      saveSearchToDB(query)
     }
 
-    sendResponse(res, format, data, httpStatus)
+    sendResponse(res, format, data, httpStatus, query)
   })
 }
 
@@ -144,8 +149,6 @@ const fetchGifsFromGiphy = (query, format, limit, res) => {
             console.log(`Redis: setting expiry of giphy:${query} to ${process.env.KEY_EXPIRY_TIME} - ${reply}`)
           })
         })
-
-        saveSearchToDB(query)
       }
 
       // returned gifs
@@ -171,7 +174,7 @@ const fetchGifsFromGiphy = (query, format, limit, res) => {
     })
 
     .finally(() => {
-      sendResponse(res, format, data, httpStatus)
+      sendResponse(res, format, data, httpStatus, query)
     })
 }
 
@@ -199,7 +202,7 @@ const fetchTrendingFromRedis = (format, limit, res) => {
       data.status = fetchStatus.ok
       httpStatus = 200
     }
-    sendResponse(res, format, data, httpStatus)
+    sendResponse(res, format, data, httpStatus, null)
   })
 }
 
@@ -270,7 +273,7 @@ const fetchTrendingFromGiphy = (format, limit, res) => {
     })
 
     .finally(() => {
-      sendResponse(res, format, data, httpStatus)
+      sendResponse(res, format, data, httpStatus, null)
     })
 }
 
