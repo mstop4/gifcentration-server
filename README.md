@@ -5,9 +5,9 @@
 
 Concentration (pairs-matching) game powered by Giphy.
 
-The **server** is a backend application that queries the Giphy API for GIFs and digests the information of 10 randomly-chosen GIFs for use by the [client app](https://github.com/mstop4/gifcentration-client).
-
 ![Screenshot](https://github.com/mstop4/gifcentration-client/blob/master/docs/demo.gif)
+
+The **server** is a backend application that queries the Giphy API for GIFs and digests the information of 10 randomly-chosen GIFs for use by the [client app](https://github.com/mstop4/gifcentration-client).
 
 ## Demo
 https://mstop4.github.io/gifcentration-client/
