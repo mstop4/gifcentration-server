@@ -1,9 +1,16 @@
 # GIFcentration (Server)
 
-[![dependencies Status](https://david-dm.org/mstop4/gifcentration-server/status.svg)](https://david-dm.org/mstop4/gifcentration)
-[![devDependencies Status](https://david-dm.org/mstop4/gifcentration-sever/dev-status.svg)](https://david-dm.org/mstop4/gifcentration?type=dev)
+[![dependencies Status](https://david-dm.org/mstop4/gifcentration-server/status.svg)](https://david-dm.org/mstop4/gifcentration-server)
+[![devDependencies Status](https://david-dm.org/mstop4/gifcentration-sever/dev-status.svg)](https://david-dm.org/mstop4/gifcentration-server?type=dev)
 
 Concentration (pairs-matching) game powered by Giphy.
+
+The **server** is a backend application that queries the Giphy API for GIFs and digests the information of 10 randomly-chosen GIFs for use by the [client app](https://github.com/mstop4/gifcentration-client).
+
+![Screenshot](https://github.com/mstop4/gifcentration-client/blob/master/docs/demo.gif)
+
+## Demo
+https://mstop4.github.io/gifcentration-client/
 
 ## Stack
 
